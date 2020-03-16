@@ -1,0 +1,29 @@
+{
+  "name": "quasi-state",
+  "version": "1.0.0",
+  "description": "Observable state manager",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/index.js",
+    "dist/index.d.ts"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ./node_modules/rollup/dist/bin/rollup -c rollup.config.js",
+    "watch": "node ./node_modules/rollup/dist/bin/rollup -c -w rollup.config.js"
+  },
+  "author": "Ivan Metelev",
+  "license": "ISC",
+  "devDependencies": {
+    "@rollup/plugin-replace": "latest",
+    "chokidar": "^3.3.1",
+    "rollup": "^2.0.3",
+    "rollup-plugin-clean": "^1.0.0",
+    "rollup-plugin-copy": "^3.3.0",
+    "rollup-plugin-terser": "^5.3.0",
+    "rollup-plugin-typescript2": "^0.26.0",
+    "tslib": "^1.11.1",
+    "typescript": "^3.8.3"
+  }
+}
