@@ -48,11 +48,11 @@ export default function patchObservablePrototype(clazz) {
 
             for (let i in authors) {
                 if (authors.hasOwnProperty(i)) {
-                    authors[i].owner.notifyObservers({
+                    authors[i].owner.notifyObservers([{
                         key: authors[i].key,
                         value,
                         oldValue
-                    });
+                    }]);
                 }
             }
         }
@@ -78,7 +78,7 @@ export default function patchObservablePrototype(clazz) {
         });
     };
 
-    clazz.prototype['addObserver'] = function(observer: IObserver, updateImmediately = true) {
+    clazz.prototype['addObserver'] = function<T>(observer: IObserver<T>, updateImmediately = true) {
         this.quasi$observers.push(observer);
         if (updateImmediately) {
             observer(this);
@@ -86,7 +86,7 @@ export default function patchObservablePrototype(clazz) {
         return this['removeObserver'].bind(this, observer);
     };
 
-    clazz.prototype['removeObserver'] = function(observer: IObserver) {
+    clazz.prototype['removeObserver'] = function<T>(observer: IObserver<T>) {
         const index = this.quasi$observers.indexOf(observer);
         if (index !== -1) {
             this.quasi$observers.splice(index, 1);
@@ -97,7 +97,7 @@ export default function patchObservablePrototype(clazz) {
         this.quasi$observers.length = 0;
     };
 
-    clazz.prototype['notifyObservers'] = function(changes?) {
+    clazz.prototype['notifyObservers'] = function(changes?: IModelChange) {
         if (Env.DEVMODE && (!this[DEBUG] || !this[DEBUG][HIDE_FREQUENCY_CHECK])) {
             analyzeCallsFrequency(this, getValue(this), changes);
         }

@@ -10,14 +10,13 @@ import {
     isObservable,
     RESET
 } from "./Utils";
-import {watched, watcher, watch} from "./decorators";
+import {watched, watch, AbstractStore, AbstractWatcher} from "./decorators";
 
 export {
     observable,
     extendObservable,
     toJS,
     watched,
-    watcher,
     watch,
     getUniqueId,
     getValue,
@@ -25,5 +24,7 @@ export {
     RESET,
     DEBUG,
     HIDE_FORCE_COMMIT_CHECK,
-    HIDE_FREQUENCY_CHECK
+    HIDE_FREQUENCY_CHECK,
+    AbstractStore,
+    AbstractWatcher
 }

@@ -30,7 +30,6 @@ export default [{
                         'cutObservable',
                         'toJS',
                         'watched',
-                        'watcher',
                         'watch',
                         'getUniqueId',
                         'getValue',
@@ -38,7 +37,9 @@ export default [{
                         'RESET',
                         'DEBUG',
                         'HIDE_FORCE_COMMIT_CHECK',
-                        'HIDE_FREQUENCY_CHECK'
+                        'HIDE_FREQUENCY_CHECK',
+                        'AbstractStore',
+                        'AbstractWatcher'
                     ]
                 }
             },

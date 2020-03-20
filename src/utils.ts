@@ -9,15 +9,15 @@ export function getUniqueId() {
     return _id;
 }
 
-export function isObject(data) {
+export function isObject(data: any) {
     return (typeof data === 'object') && (data !== null);
 }
 
-export function isObservable(data) {
+export function isObservable(data: any) {
     return data instanceof ObservableBox || data instanceof ObservableObject || data instanceof ObservableArray;
 }
 
-export function getValue(data) {
+export function getValue(data: any) {
     if (!data || !data.get) {
         return data;
     }

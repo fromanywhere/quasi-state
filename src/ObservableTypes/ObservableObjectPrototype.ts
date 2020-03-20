@@ -7,7 +7,7 @@ import {Env} from "../Env";
 
 export default function patchObservableObjectPrototype(clazz) {
 
-    clazz.prototype.get = function(key) {
+    clazz.prototype.get = function(key: string | undefined) {
         this._commitTransaction();
         if (key !== undefined) {
             return this[key];
@@ -28,7 +28,7 @@ export default function patchObservableObjectPrototype(clazz) {
         }
     };
 
-    clazz.prototype._createAccessor = function(key, enumerable = true) {
+    clazz.prototype._createAccessor = function(key: string | number, enumerable = true) {
         Object.defineProperty(this, key, {
             // Акцессоры должны уметь быть переопределяемыми и перебираемыми
             'enumerable': enumerable,
@@ -36,7 +36,7 @@ export default function patchObservableObjectPrototype(clazz) {
             get() {
                 this._commitTransaction();
 
-                if (this instanceof ObservableArray && (key >= this.length)) {
+                if (this instanceof ObservableArray && (key >= (this as []).length)) {
                     return undefined;
                 }
 

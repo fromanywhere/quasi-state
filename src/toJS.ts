@@ -31,7 +31,7 @@ function extractObservable(data) {
     return model;
 }
 
-export default function toJS(data) {
+export default function toJS(data: any) {
     let copy = extractObservable(data);
 
     if (isObject(copy)) {

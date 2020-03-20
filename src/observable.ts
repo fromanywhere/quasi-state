@@ -1,5 +1,5 @@
 import ObservableArray from "./ObservableTypes/ObservableArray";
-import {getValue, isObject, isObservable} from "./Utils";
+import {isObject, isObservable} from "./Utils";
 import ObservableObject from "./ObservableTypes/ObservableObject";
 import ObservableBox from "./ObservableTypes/ObservableBox";
 
@@ -51,6 +51,6 @@ function makeCopy(data) {
     return data;
 }
 
-export default function observable(data, deep?) {
+export default function observable(data: any, deep?: boolean) {
     return deepWalk(data, data, deep);
 }

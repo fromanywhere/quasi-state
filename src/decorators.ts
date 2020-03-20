@@ -1,88 +1,41 @@
-import {DEBUG, getUniqueId, getValue, isObservable} from "./Utils";
+import {DEBUG, getValue, isObservable} from "./Utils";
 import observable from "./observable";
 import {Env} from "./env";
+import {IObservableMixin} from "./types";
 
-function patchObservableGetter(store, name, params = {}) {
-    if (!store['quasi$']) {
-        store['quasi$'] = {
-            'fields': {},
-            'observersToObservables': {},
-            'watched': null,
-
-            'watch': function(instance, key, funcName, depsFunc) {
-                const func = instance[funcName].bind(instance);
-
-                store['quasi$'].watched = {
-                    key,
-                    func
-                };
-
-                if (!store['quasi$'].observersToObservables[key]) {
-                    store['quasi$'].observersToObservables[key] = [];
-                }
-
-                // Вызов функции определит, к каким полям обращаемся
-                depsFunc(instance);
-
-                store['quasi$'].watched = null;
-
-                if (store['quasi$'].observersToObservables[key].length === 1) {
-                    // Обсервер зависит от одного поля.
-                    // Можно вызвать функцию прямо с его значением
-                    func(store['quasi$'].observersToObservables[key][0]);
-                } else {
-                    // Полей больше, чем одно, непонятно, какое значение и как передавать
-                    // Просто вызов функции
-                    func();
-                }
-
-                // Вернуть отписку
-                return function() {
-                    store['quasi$'].observersToObservables[key].forEach(function(observableField) {
-                        observableField.removeObserver(func);
-                    });
-                    store['quasi$'].observersToObservables[key].length = 0;
-                };
-            }
-        };
-    }
+function patchObservableGetter(store: AbstractStore, name: string, params = {}) {
 
     Object.defineProperty(store, name, {
         get() {
-            const observableValue = store['quasi$'].fields[name];
-            const watched = store['quasi$'].watched;
+            const observableValue = this['quasi$'].fields[name];
 
-            if (watched) {
-                const record = store['quasi$'].observersToObservables[watched.key];
-
-                if (!record.includes(observableValue)) {
-                    record.push(observableValue);
-                    observableValue.addObserver(watched.func, false);
-                }
+            if (AbstractStore.prototype['quasi$extr']) {
+                AbstractStore.prototype['quasi$extr'] = observableValue;
                 return;
             }
 
             return getValue(observableValue);
         },
         set(value) {
-            if (isObservable(store['quasi$'].fields[name])) {
-                if (store['quasi$'].watched) {
-                    throw new Error();
-                }
+            if (Env.DEVMODE && !(this instanceof AbstractStore)) {
+                throw new Error(`Class ${this.constructor.name} should be inherited from AbstractStore`);
+            }
 
+            if (isObservable(this['quasi$'].fields[name])) {
                 if (isObservable(value)) {
-                    store['quasi$'].fields[name] = value;
+                    this['quasi$'].fields[name] = value;
                     return;
                 }
 
-                store['quasi$'].fields[name].set(value);
+                this['quasi$'].fields[name].set(value);
             } else {
                 const observableValue = observable(value, true);
-                store['quasi$'].fields[name] = observableValue;
+                this['quasi$'].fields[name] = observableValue;
                 if (Env.DEVMODE) {
                     Object.defineProperty(observableValue, DEBUG, {
+                        configurable: true,
                         value: {
-                            name: `${name}@${store.constructor.name}`,
+                            name: `${name}@${this.constructor.name}`,
                             ...params
                         }
                     });
@@ -92,7 +45,7 @@ function patchObservableGetter(store, name, params = {}) {
     });
 }
 
-export function watched(arg1, arg2?) {
+export function watched(arg1: any, arg2?: any) {
     const configurableDecoratorHandler = (store, name) => {
         patchObservableGetter(store, name, arg1);
     };
@@ -106,69 +59,64 @@ export function watched(arg1, arg2?) {
     return configurableDecoratorHandler as any;
 }
 
-export function watch(watchFunc?) {
-    return function(component, fieldName) {
-        let func;
+export function watch(watchFunc: (component: any) => any) {
+    return function(component: {}, fieldName: string) {
+        let func: () => void;
         Object.defineProperty(component, fieldName, {
             get() {
                 return func;
             },
             set(value) {
-                func = value;
-
-                // Здесь патчится прототип наследника ViewComponent
-                if (!this['quasi$watched']) {
-                    if (Env.DEVMODE && this['quasi$key'] === undefined) {
-                        throw new Error("@watcher decorator is missing on class " + this.constructor.name);
-                    }
-
-                    this['quasi$watched'] = [];
+                if (Env.DEVMODE && !(this instanceof AbstractWatcher)) {
+                    throw new Error(`Class ${this.constructor.name} should be inherited from AbstractWatcher`);
                 }
 
-                this['quasi$watched'].push({
-                    fieldName,
-                    watchFunc
-                });
+                func = value;
+                const observable = this['store']['getModel'](watchFunc.bind(null, this));
+                const unsub = observable['addObserver'](func, false);
+                this.registerObserver(unsub);
             }
         });
     };
 }
 
-export function watcher(target: any) {
-    const original = target;
+export abstract class AbstractWatcher<T> {
+    public 'subscriptions': Array<() => void> = [];
+    public 'store'!: T;
 
-    const f: any = function(...args) {
-        // tslint:disable-next-line:no-this-assignment
-        const instance = this;
-        const instanceKey = getUniqueId();
-
-        instance['quasi$key'] = instanceKey;
-        original.apply(instance, args);
-
-        if (Env.DEVMODE && !instance['store']) {
-            throw new Error(`@watcher at ${this.constructor.name} should have "store" property`);
+    protected constructor(store?: T) {
+        if (store) {
+            // Запись в поле абстрактного предка для view-компонентов
+            Object.getPrototypeOf(Object.getPrototypeOf(this))['store'] = store;
         }
+    }
 
-        if (instance['quasi$watched']) {
-            instance['quasi$watched'].forEach((watched) => {
-                if (Env.DEVMODE && !watched.watchFunc) {
-                    throw new Error(`Empty @watch function at ${this.constructor.name} ${watched.fieldName}`);
-                }
+    public 'registerObserver'(unsubscribeFunction: () => void) {
+        this['subscriptions'].push(unsubscribeFunction);
+    }
 
-                if (Env.DEVMODE && !instance['registerObserver']) {
-                    throw new Error(`${this.constructor.name} should implement "registerObserver" method`);
-                }
+    public 'destroy'() {
+        this['subscriptions'].forEach((unsubscribeFunction) => {
+            unsubscribeFunction();
+        });
+    }
+}
 
-                const methodKey = `${watched.fieldName}$${instanceKey}`;
-                instance['registerObserver'](instance['store']['quasi$'].watch(instance, methodKey, watched.fieldName, watched.watchFunc));
-            });
-        } else if (Env.DEVMODE) {
-            throw new Error(`@watcher decorator is registered on class ${this.constructor.name} but no @watch found`);
-        }
+export abstract class AbstractStore {
+    private 'quasi$extr': any;
+    private 'quasi$': {};
 
-        return instance;
-    };
+    protected constructor() {
+        this['quasi$'] = {
+            'fields': {}
+        };
+    }
 
-    f.prototype = original.prototype;
-    return f;
+    public 'getModel'<K>(exp: () => K): IObservableMixin<K> {
+        AbstractStore.prototype['quasi$extr'] = true;
+        exp();
+        const value = AbstractStore.prototype['quasi$extr'];
+        AbstractStore.prototype['quasi$extr'] = undefined;
+        return value;
+    }
 }
