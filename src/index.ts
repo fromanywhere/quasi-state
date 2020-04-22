@@ -10,7 +10,10 @@ import {
     isObservable,
     RESET
 } from "./Utils";
-import {watched, watch, AbstractStore, AbstractWatcher} from "./decorators";
+import {watched, watch} from "./decorators";
+import {AbstractStore} from "./AppAdapters/AbstractStore";
+import {AbstractWatcher} from "./AppAdapters/AbstractWatcher";
+import arrayDiff from "./arrayDiff";
 
 export {
     observable,
@@ -21,10 +24,11 @@ export {
     getUniqueId,
     getValue,
     isObservable,
+    arrayDiff,
     RESET,
     DEBUG,
     HIDE_FORCE_COMMIT_CHECK,
     HIDE_FREQUENCY_CHECK,
     AbstractStore,
     AbstractWatcher
-}
+};

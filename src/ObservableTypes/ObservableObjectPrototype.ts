@@ -4,6 +4,7 @@ import ObservableArray from "./ObservableArray";
 import ObservableBox from "./ObservableBox";
 import ObservableObject from "./ObservableObject";
 import {Env} from "../Env";
+import {IHash, IModelChange} from "../types";
 
 export default function patchObservableObjectPrototype(clazz) {
 
@@ -15,7 +16,7 @@ export default function patchObservableObjectPrototype(clazz) {
         return this;
     };
 
-    clazz.prototype.set = function(key, value) {
+    clazz.prototype.set = function(key, value, disableBoxing?) {
         if (arguments.length === 1) {
             const newValue = observable(key);
             if (newValue.constructor !== this.constructor) {
@@ -24,7 +25,7 @@ export default function patchObservableObjectPrototype(clazz) {
             }
             this._putChanges(this, RESET, newValue, this);
         } else {
-            this._putChanges(this, key, observable(value), this.quasi$model[key]);
+            this._putChanges(this, key, disableBoxing ? value : observable(value), this.quasi$model[key]);
         }
     };
 
@@ -69,9 +70,9 @@ export default function patchObservableObjectPrototype(clazz) {
         this.quasi$dataTransactionDeps.length = 0;
     };
 
-    clazz.prototype._processData = function(diff) {
-        const accumulator = {};
-        const changes = [];
+    clazz.prototype._processData = function(diff: IModelChange[]) {
+        const accumulator: IHash<IModelChange> = {};
+        const changes: IModelChange[] = [];
         let redefineAccessors = false;
 
         // Схлопнем список изменений в одно по каждому ключу
@@ -90,7 +91,11 @@ export default function patchObservableObjectPrototype(clazz) {
             if (accumulator.hasOwnProperty(key)) {
                 const keyValue = accumulator[key];
                 if (keyValue.value !== keyValue.oldValue) {
-                    changes.push(keyValue);
+                    changes.push({
+                        ...keyValue,
+                        value: getValue(keyValue.value),
+                        oldValue: getValue(keyValue.oldValue)
+                    });
 
                     if (key === RESET) {
                         // Здесь сущность пересоздана заново.

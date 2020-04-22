@@ -100,12 +100,7 @@ module.exports = {
         // Нет смысла ужесточать правило доступа к полям объекта, т.к. наличие проверяется noImplicitAny
         "no-string-literal": false,
         // Разрешаем импортировать основные модули, иначе IDEA подсвечивает желтым
-        "no-submodule-imports": [
-            true,
-            "core",
-            "ui",
-            "ok"
-        ],
+        "no-submodule-imports": false,
         // Не запрещать классы со статичными методами
         "no-unnecessary-class": ["allow-constructor-only", "allow-static-only"],
         // Неясно, зачем навязывать сортировку полей

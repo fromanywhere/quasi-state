@@ -1,9 +1,10 @@
 import pkg from './package.json';
-import clean from 'rollup-plugin-clean';
+import cleaner from 'rollup-plugin-cleaner';
 import typescript from 'rollup-plugin-typescript2';
 import {terser} from "rollup-plugin-terser";
 import replace from '@rollup/plugin-replace';
 import copy from 'rollup-plugin-copy';
+import { sizeSnapshot } from "rollup-plugin-size-snapshot";
 
 export default [{
     input: 'src/index.ts',
@@ -13,9 +14,60 @@ export default [{
         name: "quasi-state"
     }],
     plugins: [
-        clean({
-            dest: 'dist'
+        cleaner({
+            targets: [
+                './dist'
+            ]
         }),
+        replace({
+            'Env.DEVMODE': false
+        }),
+        typescript(),
+        terser({
+            mangle: {
+                properties: {
+                    keep_quoted: 'true',
+                    reserved: [
+                        'observable',
+                        'extendObservable',
+                        'cutObservable',
+                        'toJS',
+                        'watched',
+                        'watch',
+                        'getUniqueId',
+                        'getValue',
+                        'isObservable',
+                        'arrayDiff',
+                        'RESET',
+                        'DEBUG',
+                        'HIDE_FORCE_COMMIT_CHECK',
+                        'HIDE_FREQUENCY_CHECK',
+                        'AbstractStore',
+                        'AbstractWatcher'
+                    ]
+                }
+            },
+            output: {
+                comments: false
+            }
+        }),
+        copy({
+            targets: [{ src: pkg.main, dest: `../build/quasi-state/${pkg.version.replace(/\./g, '-')}`, rename: 'quasi-state.js' }],
+            hook: 'writeBundle'
+        }),
+        sizeSnapshot()
+    ],
+    watch: {
+        chokidar: true
+    }
+}, {
+    input: 'src/index.ts',
+    output: [{
+        file: 'dist/index.common.js',
+        format: 'commonjs',
+        name: "quasi-state"
+    }],
+    plugins: [
         replace({
             'Env.DEVMODE': false
         }),
@@ -46,13 +98,6 @@ export default [{
             output: {
                 comments: false
             }
-        }),
-        copy({
-            targets: [{ src: pkg.main, dest: '../standalone', rename: 'quasi-state.js' }],
-            hook: 'writeBundle'
         })
-    ],
-    watch: {
-        chokidar: true
-    }
+    ]
 }];

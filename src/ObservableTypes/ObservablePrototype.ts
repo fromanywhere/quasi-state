@@ -81,7 +81,7 @@ export default function patchObservablePrototype(clazz) {
     clazz.prototype['addObserver'] = function<T>(observer: IObserver<T>, updateImmediately = true) {
         this.quasi$observers.push(observer);
         if (updateImmediately) {
-            observer(this);
+            observer(getValue(this));
         }
         return this['removeObserver'].bind(this, observer);
     };

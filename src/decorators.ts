@@ -1,7 +1,9 @@
 import {DEBUG, getValue, isObservable} from "./Utils";
 import observable from "./observable";
 import {Env} from "./env";
-import {IObservableMixin} from "./types";
+import {AbstractWatcher} from "./AppAdapters/AbstractWatcher";
+import {AbstractStore} from "./AppAdapters/AbstractStore";
+import {IAbstractWatcher} from "./types";
 
 function patchObservableGetter(store: AbstractStore, name: string, params = {}) {
 
@@ -59,64 +61,24 @@ export function watched(arg1: any, arg2?: any) {
     return configurableDecoratorHandler as any;
 }
 
-export function watch(watchFunc: (component: any) => any) {
+export function watch<C extends AbstractWatcher<any>>(accessor: (component: C) => any) {
     return function(component: {}, fieldName: string) {
         let func: () => void;
         Object.defineProperty(component, fieldName, {
             get() {
                 return func;
             },
-            set(value) {
+            set(this: IAbstractWatcher<any>, value) {
                 if (Env.DEVMODE && !(this instanceof AbstractWatcher)) {
                     throw new Error(`Class ${this.constructor.name} should be inherited from AbstractWatcher`);
                 }
 
-                func = value;
-                const observable = this['store']['getModel'](watchFunc.bind(null, this));
-                const unsub = observable['addObserver'](func, false);
+                func = this.loggerWrapper(value);
+
+                const observableField = this['store']['getModel'](accessor.bind(null, this));
+                const unsub = observableField['addObserver'](func, false);
                 this.registerObserver(unsub);
             }
         });
     };
-}
-
-export abstract class AbstractWatcher<T> {
-    public 'subscriptions': Array<() => void> = [];
-    public 'store'!: T;
-
-    protected constructor(store?: T) {
-        if (store) {
-            // Запись в поле абстрактного предка для view-компонентов
-            Object.getPrototypeOf(Object.getPrototypeOf(this))['store'] = store;
-        }
-    }
-
-    public 'registerObserver'(unsubscribeFunction: () => void) {
-        this['subscriptions'].push(unsubscribeFunction);
-    }
-
-    public 'destroy'() {
-        this['subscriptions'].forEach((unsubscribeFunction) => {
-            unsubscribeFunction();
-        });
-    }
-}
-
-export abstract class AbstractStore {
-    private 'quasi$extr': any;
-    private 'quasi$': {};
-
-    protected constructor() {
-        this['quasi$'] = {
-            'fields': {}
-        };
-    }
-
-    public 'getModel'<K>(exp: () => K): IObservableMixin<K> {
-        AbstractStore.prototype['quasi$extr'] = true;
-        exp();
-        const value = AbstractStore.prototype['quasi$extr'];
-        AbstractStore.prototype['quasi$extr'] = undefined;
-        return value;
-    }
 }
