@@ -9,7 +9,7 @@ import {
     HIDE_FREQUENCY_CHECK,
     isObservable,
     RESET
-} from "./Utils";
+} from "./utils";
 import {watched, watch} from "./decorators";
 import {AbstractStore} from "./AppAdapters/AbstractStore";
 import {AbstractWatcher} from "./AppAdapters/AbstractWatcher";

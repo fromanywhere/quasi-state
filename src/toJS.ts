@@ -1,6 +1,6 @@
 import ObservableArray from "./ObservableTypes/ObservableArray";
 import ObservableObject from "./ObservableTypes/ObservableObject";
-import {getValue, isObject, isObservable} from "./Utils";
+import {getValue, isObject, isObservable} from "./utils";
 
 function extractObservable(data) {
     if (!isObservable(data)) {

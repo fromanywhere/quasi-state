@@ -52,7 +52,7 @@ export default [{
             }
         }),
         copy({
-            targets: [{ src: pkg.main, dest: `../build/quasi-state/${pkg.version.replace(/\./g, '-')}`, rename: 'quasi-state.js' }],
+            targets: [{ src: pkg.main, dest: `../build/quasi-state`, rename: 'quasi-state.js' }],
             hook: 'writeBundle'
         }),
         sizeSnapshot()

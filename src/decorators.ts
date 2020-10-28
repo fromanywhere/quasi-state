@@ -1,4 +1,4 @@
-import {DEBUG, getValue, isObservable} from "./Utils";
+import {DEBUG, getValue, isObservable} from "./utils";
 import observable from "./observable";
 import {Env} from "./env";
 import {AbstractWatcher} from "./AppAdapters/AbstractWatcher";

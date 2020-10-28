@@ -1,4 +1,4 @@
-import {getUniqueId} from "../Utils";
+import {getUniqueId} from "../utils";
 import MicrotaskTransaction from "../Microtask/MicrotaskTransaction";
 
 export default function observableModel(model) {

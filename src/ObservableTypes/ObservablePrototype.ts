@@ -1,6 +1,6 @@
 import {IModelChange, IObserver} from "../types";
-import {DEBUG, HIDE_FORCE_COMMIT_CHECK, HIDE_FREQUENCY_CHECK, getValue} from "../Utils";
-import {Env} from "../Env";
+import {DEBUG, HIDE_FORCE_COMMIT_CHECK, HIDE_FREQUENCY_CHECK, getValue} from "../utils";
+import {Env} from "../env";
 
 const freqIds = {};
 function analyzeCallsFrequency(instance, value, changes) {

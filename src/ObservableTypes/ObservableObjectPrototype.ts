@@ -1,9 +1,9 @@
 import observable from "../observable";
-import {DEBUG, HIDE_FORCE_COMMIT_CHECK, getValue, isObject, RESET} from "../Utils";
+import {DEBUG, HIDE_FORCE_COMMIT_CHECK, getValue, isObject, RESET} from "../utils";
 import ObservableArray from "./ObservableArray";
 import ObservableBox from "./ObservableBox";
 import ObservableObject from "./ObservableObject";
-import {Env} from "../Env";
+import {Env} from "../env";
 import {IHash, IModelChange} from "../types";
 
 export default function patchObservableObjectPrototype(clazz) {
@@ -23,7 +23,7 @@ export default function patchObservableObjectPrototype(clazz) {
                 // Переопределение типа в рантайме недопустимо
                 throw new TypeError();
             }
-            this._putChanges(this, RESET, newValue, this);
+            this._putChanges(this, RESET, newValue, {...this});
         } else {
             this._putChanges(this, key, disableBoxing ? value : observable(value), this.quasi$model[key]);
         }

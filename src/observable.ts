@@ -1,5 +1,5 @@
 import ObservableArray from "./ObservableTypes/ObservableArray";
-import {isObject, isObservable} from "./Utils";
+import {isObject, isObservable} from "./utils";
 import ObservableObject from "./ObservableTypes/ObservableObject";
 import ObservableBox from "./ObservableTypes/ObservableBox";
 
